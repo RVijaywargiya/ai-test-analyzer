@@ -1,6 +1,8 @@
 
 package com.example.ai_test_analyzer.model;
 
+import java.util.List;
+
 public class FailureAnalysis {
 
     private String testName;
@@ -8,6 +10,7 @@ public class FailureAnalysis {
     private String severity;
     private String probableCause;
     private String explanation;
+    private List<String> investigationSteps;
 
     public String getTestName() {
         return testName;
@@ -47,5 +50,13 @@ public class FailureAnalysis {
 
     public void setExplanation(String explanation) {
         this.explanation = explanation;
+    }
+
+    public List<String> getInvestigationSteps() {
+        return investigationSteps;
+    }
+
+    public void setInvestigationSteps(List<String> investigationSteps) {
+        this.investigationSteps = investigationSteps;
     }
 }
