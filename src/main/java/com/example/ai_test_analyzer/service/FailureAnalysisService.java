@@ -20,7 +20,6 @@ public class FailureAnalysisService {
 
     public FailureAnalysis analyze(TestFailure failure) {
 
-
         String prompt = """
         You are an experienced software test automation engineer.
 
@@ -48,48 +47,48 @@ public class FailureAnalysisService {
 
         {
                 
-                                                                                                Classify the failure using the following rules:
-                
-                                                                                                1. APPLICATION:
-                                                                                                   Unexpected application exceptions, server defects,
-                                                                                                   or application processing errors.
-                
-                                                                                                2. BUSINESS_RULE:
-                                                                                                   The application rejects an operation because a
-                                                                                                   business condition or workflow rule is not satisfied.
-                
-                                                                                                3. TEST_DATA:
-                                                                                                   Invalid, missing, inconsistent, or incorrectly
-                                                                                                   prepared test data causes the failure.
-                
-                                                                                                4. NETWORK:
-                                                                                                   Connection failures, timeouts, DNS issues,
-                                                                                                   or communication problems.
-                
-                                                                                                5. AUTHENTICATION:
-                                                                                                   Invalid credentials, expired tokens, or permission issues.
-                
-                                                                                                6. AUTOMATION:
-                                                                                                   Test script defects, incorrect assertions,
-                                                                                                   locator failures, or automation configuration problems.
-                
-                                                                                                7. UNKNOWN:
-                                                                                                   Insufficient evidence to determine the category.
-                
-                                                                                                Important classification guidelines:
-                
-                                                                                                - Do not classify a failure as APPLICATION just because
-                                                                                                  the HTTP status code is 500.
-                                                                                                - Analyze the actual error message and available context.
-                                                                                                - Distinguish a business-rule rejection from an application defect.
-                                                                                                - Do not assume test data is incorrect without evidence.
-                                                                                                - If evidence is insufficient, choose UNKNOWN.
-                                                                                                - Explain why you selected the category.
-                                                                                                - Generate 3 to 5 specific, practical investigation steps.
-                
-                                                                                                          The steps must be relevant to the identified failure.
-                                                                                                          Avoid generic recommendations.
-                                                                                                          Do not claim that an unverified cause is confirmed.
+        Classify the failure using the following rules:
+
+        1. APPLICATION:
+           Unexpected application exceptions, server defects,
+           or application processing errors.
+
+        2. BUSINESS_RULE:
+           The application rejects an operation because a
+           business condition or workflow rule is not satisfied.
+
+        3. TEST_DATA:
+           Invalid, missing, inconsistent, or incorrectly
+           prepared test data causes the failure.
+
+        4. NETWORK:
+           Connection failures, timeouts, DNS issues,
+           or communication problems.
+
+        5. AUTHENTICATION:
+           Invalid credentials, expired tokens, or permission issues.
+
+        6. AUTOMATION:
+           Test script defects, incorrect assertions,
+           locator failures, or automation configuration problems.
+
+        7. UNKNOWN:
+           Insufficient evidence to determine the category.
+
+        Important classification guidelines:
+
+        - Do not classify a failure as APPLICATION just because
+          the HTTP status code is 500.
+        - Analyze the actual error message and available context.
+        - Distinguish a business-rule rejection from an application defect.
+        - Do not assume test data is incorrect without evidence.
+        - If evidence is insufficient, choose UNKNOWN.
+        - Explain why you selected the category.
+        - Generate 3 to 5 specific, practical investigation steps.
+
+                  The steps must be relevant to the identified failure.
+                  Avoid generic recommendations.
+                  Do not claim that an unverified cause is confirmed.
                                                                                                 ,
           "severity": "HIGH or MEDIUM or LOW",
           "probableCause": "Most likely reason for failure",
