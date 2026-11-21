@@ -2,16 +2,29 @@
 package com.example.ai_test_analyzer.service;
 
 import com.example.ai_test_analyzer.client.OllamaClient;
+import com.example.ai_test_analyzer.model.BatchFailureAnalysis;
 import com.example.ai_test_analyzer.model.TestFailure;
 import com.example.ai_test_analyzer.model.FailureAnalysis;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class FailureAnalysisService {
 
     private final OllamaClient ollamaClient;
     private final ObjectMapper objectMapper;
+
+    private static final Set<String> VALID_CATEGORIES = Set.of(
+            "APPLICATION",
+            "BUSINESS_RULE",
+            "TEST_DATA",
+            "NETWORK",
+            "AUTHENTICATION",
+            "AUTOMATION",
+            "UNKNOWN"
+    );
 
     public FailureAnalysisService(OllamaClient ollamaClient, ObjectMapper objectMapper) {
         this.ollamaClient = ollamaClient;
@@ -98,7 +111,20 @@ public class FailureAnalysisService {
                       "First investigation step",
                       "Second investigation step",
                       "Third investigation step"
-                    ]
+                    ],
+          "confidence": "HIGH, MEDIUM or LOW"
+          Confidence guidelines:
+                
+                  HIGH:
+                  The error message provides strong evidence for the classification.
+                
+                  MEDIUM:
+                  The error message suggests a likely cause, but additional
+                  investigation is needed.
+                
+                  LOW:
+                  The available information is insufficient to identify
+                  a reliable cause.          
         }
 
         Do not include markdown or additional text.
@@ -111,9 +137,122 @@ public class FailureAnalysisService {
         String aiResponse = ollamaClient.generate(prompt);
 
         try {
-            return objectMapper.readValue(aiResponse, FailureAnalysis.class);
+
+            FailureAnalysis analysis =
+                    objectMapper.readValue(aiResponse, FailureAnalysis.class);
+
+            // Validate category
+            if (analysis.getCategory() == null ||
+                    !VALID_CATEGORIES.contains(analysis.getCategory())) {
+
+                analysis.setCategory("UNKNOWN");
+            }
+
+            // Validate severity
+            if (analysis.getSeverity() == null ||
+                    !Set.of("HIGH", "MEDIUM", "LOW")
+                            .contains(analysis.getSeverity())) {
+
+                analysis.setSeverity("MEDIUM");
+            }
+
+            // Validate test name
+            if (analysis.getTestName() == null ||
+                    analysis.getTestName().isBlank()) {
+
+                analysis.setTestName(failure.getTestName());
+            }
+
+            // Validate investigation steps
+            if (analysis.getInvestigationSteps() == null ||
+                    analysis.getInvestigationSteps().isEmpty()) {
+
+                analysis.setInvestigationSteps(
+                        List.of("Review application logs and investigate the failure.")
+                );
+            }
+
+            return analysis;
+
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse AI response", e);
+
+            throw new RuntimeException(
+                    "Failed to parse AI response: " + aiResponse, e
+            );
         }
     }
+
+
+    public BatchFailureAnalysis analyzeBatch(List<TestFailure> failures) {
+
+        StringBuilder failureDetails = new StringBuilder();
+
+        for (TestFailure failure : failures) {
+
+            failureDetails.append("""
+                
+                Test Name: %s
+                HTTP Status: %d
+                Error Message: %s
+                
+                """.formatted(
+                    failure.getTestName(),
+                    failure.getStatusCode(),
+                    failure.getErrorMessage()
+            ));
+        }
+
+        String prompt = """
+            You are an experienced software test automation engineer.
+
+            Analyze the following API test failures together.
+
+            Identify:
+            1. Common failure patterns.
+            2. Failures that may share an underlying cause.
+            3. Whether the failures indicate a possible common service issue.
+            4. Recommended investigation actions.
+
+            Do not assume that failures are related merely because
+            they occurred in the same execution.
+
+            Base your conclusions only on the supplied evidence.
+
+            Test failures:
+            %s
+
+            Return ONLY valid JSON with these fields:
+
+            {
+              "totalFailures": 0,
+              "overallAssessment": "Overall assessment",
+              "commonPatterns": [
+                "Identified pattern"
+              ],
+              "recommendedActions": [
+                "Recommended investigation action"
+              ]
+            }
+            """.formatted(failureDetails);
+
+        String aiResponse = ollamaClient.generate(prompt);
+
+        try {
+            BatchFailureAnalysis analysis =
+                    objectMapper.readValue(
+                            aiResponse,
+                            BatchFailureAnalysis.class
+                    );
+
+            analysis.setTotalFailures(failures.size());
+
+            return analysis;
+
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Failed to parse batch analysis: " + aiResponse, e
+            );
+        }
+    }
+
 }

@@ -11,6 +11,7 @@ public class FailureAnalysis {
     private String probableCause;
     private String explanation;
     private List<String> investigationSteps;
+    private String confidence;
 
     public String getTestName() {
         return testName;
@@ -58,5 +59,13 @@ public class FailureAnalysis {
 
     public void setInvestigationSteps(List<String> investigationSteps) {
         this.investigationSteps = investigationSteps;
+    }
+
+    public String getConfidence() {
+        return confidence;
+    }
+
+    public void setConfidence(String confidence) {
+        this.confidence = confidence;
     }
 }

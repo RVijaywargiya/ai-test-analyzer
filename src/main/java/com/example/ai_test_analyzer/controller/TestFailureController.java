@@ -1,11 +1,14 @@
 package com.example.ai_test_analyzer.controller;
 
 import com.example.ai_test_analyzer.client.OllamaClient;
+import com.example.ai_test_analyzer.model.BatchFailureAnalysis;
 import com.example.ai_test_analyzer.model.FailureAnalysis;
 //import com.example.testanalyzer.model.FailureAnalysis;
 import com.example.ai_test_analyzer.model.TestFailure;
 import com.example.ai_test_analyzer.service.FailureAnalysisService;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/failures")
@@ -37,4 +40,13 @@ public class TestFailureController {
 
         return ollamaClient.generate(prompt);
     }
+
+
+    @PostMapping("/analyze-batch")
+    public BatchFailureAnalysis analyzeBatch(
+            @RequestBody List<TestFailure> failures) {
+
+        return analysisService.analyzeBatch(failures);
+    }
+
 }
