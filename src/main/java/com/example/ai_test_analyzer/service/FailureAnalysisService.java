@@ -8,6 +8,7 @@ import com.example.ai_test_analyzer.model.FailureAnalysis;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -15,6 +16,7 @@ public class FailureAnalysisService {
 
     private final OllamaClient ollamaClient;
     private final ObjectMapper objectMapper;
+    private final FailureCorrelationService correlationService;
 
     private static final Set<String> VALID_CATEGORIES = Set.of(
             "APPLICATION",
@@ -26,9 +28,10 @@ public class FailureAnalysisService {
             "UNKNOWN"
     );
 
-    public FailureAnalysisService(OllamaClient ollamaClient, ObjectMapper objectMapper) {
+    public FailureAnalysisService(OllamaClient ollamaClient, ObjectMapper objectMapper, FailureCorrelationService correlationService) {
         this.ollamaClient = ollamaClient;
         this.objectMapper = objectMapper;
+        this.correlationService = correlationService;
     }
 
     public FailureAnalysis analyze(TestFailure failure) {
@@ -253,6 +256,12 @@ public class FailureAnalysisService {
                     "Failed to parse batch analysis: " + aiResponse, e
             );
         }
+    }
+
+    public Map<String, List<TestFailure>> testCorrelation(
+            List<TestFailure> failures) {
+
+        return correlationService.correlate(failures);
     }
 
 }

@@ -9,6 +9,7 @@ import com.example.ai_test_analyzer.service.FailureAnalysisService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/failures")
@@ -47,6 +48,13 @@ public class TestFailureController {
             @RequestBody List<TestFailure> failures) {
 
         return analysisService.analyzeBatch(failures);
+    }
+
+    @PostMapping("/correlate")
+    public Map<String, List<TestFailure>> correlate(
+            @RequestBody List<TestFailure> failures) {
+
+        return analysisService.testCorrelation(failures);
     }
 
 }
